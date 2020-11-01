@@ -1,7 +1,9 @@
 package com.example.demo.infra;
 
-import com.example.demo.Contact;
+import java.util.stream.Stream;
 
 public interface EventStore {
-  void put(String mail, Contact contact);
+  void put(String key, Event event);
+
+  Stream<Event> getByMail(String mail);
 }

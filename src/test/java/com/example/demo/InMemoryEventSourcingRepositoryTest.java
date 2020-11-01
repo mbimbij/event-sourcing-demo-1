@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.infra.EventStore;
 import com.example.demo.infra.InMemoryEventSourcingRepository;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,11 +17,18 @@ class InMemoryEventSourcingRepositoryTest {
   private InMemoryEventSourcingRepository repository;
   private EventStore eventStore;
   private final String mail = "mail";
+  private Contact contact;
 
   @BeforeEach
   void setUp() {
     eventStore = new InMemoryEventStore();
     repository = new InMemoryEventSourcingRepository(eventStore);
+    contact = Contact.builder()
+        .mail(mail)
+        .username("username")
+        .address("address")
+        .phoneNumber("phoneNumber")
+        .build();
   }
 
   @Test
@@ -30,15 +38,33 @@ class InMemoryEventSourcingRepositoryTest {
 
   @Test
   void givenEmptyEventStore_whenCreate_then1CreateEventIsPresent() {
-    Contact contact = Contact.builder()
-        .mail(mail)
-        .username("username")
-        .address("address")
-        .phoneNumber("phoneNumber")
-        .build();
     repository.create(contact);
     Optional<Contact> contactOptional = repository.getByMail(mail);
     assertThat(contactOptional).isNotEmpty();
   }
 
+  @Test
+  void givenEmptyEventStore_whenCreateAndUpdateMail_thenStateIsCorrect() {
+    repository.create(contact);
+    Contact newContact = Contact.builder()
+        .mail(contact.getMail())
+        .username(contact.getUsername())
+        .address(contact.getAddress())
+        .phoneNumber(contact.getPhoneNumber())
+        .build();
+    newContact.setAddress("address2");
+    newContact.setPhoneNumber("phoneNumber2");
+    repository.update(newContact);
+    Contact updatedContact = repository.getByMail(mail).get();
+    Contact expectedUpdatedContact = Contact.builder()
+        .mail(mail)
+        .username("username")
+        .address("address2")
+        .phoneNumber("phoneNumber2")
+        .build();
+    SoftAssertions.assertSoftly(softAssertions -> {
+      softAssertions.assertThat(updatedContact).isEqualTo(expectedUpdatedContact);
+      softAssertions.assertThat(updatedContact).isNotEqualTo(contact);
+    });
+  }
 }
