@@ -8,4 +8,6 @@ public interface ContactRepository {
   Optional<Contact> getByMail(String mail);
 
   void update(Contact contact);
+
+  void deleteByMail(String mail);
 }

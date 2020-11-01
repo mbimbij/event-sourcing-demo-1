@@ -14,15 +14,14 @@ import static org.mockito.Mockito.mock;
 
 class InMemoryEventSourcingRepositoryTest {
 
-  private InMemoryEventSourcingRepository repository;
-  private EventStore eventStore;
+  private InMemoryEventStore eventStore = new InMemoryEventStore();
+  private InMemoryEventSourcingRepository repository = new InMemoryEventSourcingRepository(eventStore);
   private final String mail = "mail";
   private Contact contact;
 
   @BeforeEach
   void setUp() {
-    eventStore = new InMemoryEventStore();
-    repository = new InMemoryEventSourcingRepository(eventStore);
+    eventStore.clear();
     contact = Contact.builder()
         .mail(mail)
         .username("username")
@@ -41,6 +40,14 @@ class InMemoryEventSourcingRepositoryTest {
     repository.create(contact);
     Optional<Contact> contactOptional = repository.getByMail(mail);
     assertThat(contactOptional).isNotEmpty();
+    Contact expectedContact = Contact.builder()
+        .mail(contact.getMail())
+        .username(contact.getUsername())
+        .address(contact.getAddress())
+        .phoneNumber(contact.getPhoneNumber())
+        .build();
+
+    assertThat(contactOptional.get()).isEqualTo(expectedContact);
   }
 
   @Test
@@ -66,5 +73,13 @@ class InMemoryEventSourcingRepositoryTest {
       softAssertions.assertThat(updatedContact).isEqualTo(expectedUpdatedContact);
       softAssertions.assertThat(updatedContact).isNotEqualTo(contact);
     });
+  }
+
+  @Test
+  void givenEntityCreated_whenDelete_thenEntityDeleted() {
+    repository.create(contact);
+    repository.deleteByMail(mail);
+    Optional<Contact> contactOptional = repository.getByMail(mail);
+    assertThat(contactOptional).isEmpty();
   }
 }

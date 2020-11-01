@@ -18,4 +18,8 @@ public class InMemoryEventStore implements EventStore {
   public Stream<Event> getByMail(String mail) {
     return contacts.getOrDefault(mail, Collections.emptyList()).stream();
   }
+
+  public void clear(){
+    contacts.clear();
+  }
 }

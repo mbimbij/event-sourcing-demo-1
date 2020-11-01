@@ -56,4 +56,9 @@ public class InMemoryEventSourcingRepository implements ContactRepository {
     }
     return diff;
   }
+
+  @Override
+  public void deleteByMail(String mail) {
+    eventStore.put(mail,new ContactDeletedEvent());
+  }
 }

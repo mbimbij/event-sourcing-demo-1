@@ -15,8 +15,8 @@ public class ContactUpdatedEvent extends Event {
   }
 
   @Override
-  public State apply(State state) {
-    ContactState previousState = state.getContactState();
+  public State apply(State currentState) {
+    ContactState previousState = currentState.getContactState();
     String mail = (String) updatedFields.getOrDefault("mail", previousState.getMail());
     String username = (String) updatedFields.getOrDefault("username", previousState.getUsername());
     String address = (String) updatedFields.getOrDefault("address", previousState.getAddress());

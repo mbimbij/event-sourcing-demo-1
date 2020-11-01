@@ -14,7 +14,7 @@ public class ContactCreatedEvent extends Event {
   }
 
   @Override
-  public State apply(State state) {
+  public State apply(State currentState) {
     return new State(contact);
   }
 }
