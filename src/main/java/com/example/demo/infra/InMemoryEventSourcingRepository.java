@@ -3,6 +3,7 @@ package com.example.demo.infra;
 import com.example.demo.Contact;
 import com.example.demo.ContactRepository;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +27,16 @@ public class InMemoryEventSourcingRepository implements ContactRepository {
   @Override
   public Optional<Contact> getByMail(String mail) {
     Stream<Event> eventStream = eventStore.getByMail(mail);
+    return rebuildState(eventStream);
+  }
+
+  @Override
+  public Optional<Contact> getByMailAtDateTime(String mail, ZonedDateTime dateTime) {
+    Stream<Event> eventStream = eventStore.getByMail(mail).filter(event -> event.getDateTime().isBefore(dateTime));
+    return rebuildState(eventStream);
+  }
+
+  private Optional<Contact> rebuildState(Stream<Event> eventStream) {
     State finalState = eventStream.reduce(State.EMPTY,
         (state, event) -> event.apply(state),
         (state, state2) -> state2);

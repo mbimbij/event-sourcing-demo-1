@@ -2,19 +2,24 @@ package com.example.demo.infra;
 
 import lombok.Value;
 
-import static com.example.demo.infra.EventType.CREATED;
+import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Value
 public class ContactCreatedEvent extends Event {
-  private ContactState contact;
+  private ContactState contactState;
 
-  @Override
-  public EventType getType() {
-    return CREATED;
+  public ContactCreatedEvent(ContactState contactState) {
+    this.contactState = contactState;
+  }
+
+  public ContactCreatedEvent(UUID id, ZonedDateTime dateTime, ContactState contactState) {
+    super(id, dateTime);
+    this.contactState = contactState;
   }
 
   @Override
   public State apply(State currentState) {
-    return new State(contact);
+    return new State(contactState);
   }
 }

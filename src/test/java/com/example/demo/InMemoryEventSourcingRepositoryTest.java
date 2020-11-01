@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.example.demo.infra.ContactDeletedEvent;
+import com.example.demo.infra.ContactUpdatedEvent;
 import com.example.demo.infra.EventStore;
 import com.example.demo.infra.InMemoryEventSourcingRepository;
 import org.assertj.core.api.Assertions;
@@ -7,7 +9,10 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -81,5 +86,39 @@ class InMemoryEventSourcingRepositoryTest {
     repository.deleteByMail(mail);
     Optional<Contact> contactOptional = repository.getByMail(mail);
     assertThat(contactOptional).isEmpty();
+  }
+
+  @Test
+  void given2Updates_whenQueryStateBetweenFirstAndSecondUpdate_thenReturnsStateAfterFirstUpdate() {
+    // GIVEN
+    Contact expectedContact = Contact.builder()
+        .mail("mail")
+        .username("username")
+        .address("address2")
+        .phoneNumber("phoneNumber2")
+        .build();
+
+    repository.create(contact);
+    ContactUpdatedEvent event1 = new ContactUpdatedEvent(UUID.randomUUID(),
+        ZonedDateTime.now().plusDays(1),
+        Map.of("address", "address2", "phoneNumber", "phoneNumber2"));
+
+    eventStore.put(mail, event1);
+    ContactUpdatedEvent event2 = new ContactUpdatedEvent(UUID.randomUUID(),
+        ZonedDateTime.now().plusDays(2),
+        Map.of("phoneNumber", "phoneNumber3"));
+    eventStore.put(mail, event2);
+
+    ContactDeletedEvent event3 = new ContactDeletedEvent(UUID.randomUUID(),
+        ZonedDateTime.now().plusDays(3));
+    eventStore.put(mail, event3);
+
+    // WHEN
+    Optional<Contact> contactOptional = repository.getByMailAtDateTime(mail, ZonedDateTime.now().plusDays(1).plusHours(1));
+
+    // THEN
+    assertThat(repository.getByMail(mail)).isNotPresent();
+    assertThat(contactOptional).isPresent();
+    assertThat(contactOptional.get()).isEqualTo(expectedContact);
   }
 }

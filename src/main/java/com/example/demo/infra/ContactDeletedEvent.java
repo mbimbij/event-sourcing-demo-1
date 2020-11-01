@@ -1,9 +1,14 @@
 package com.example.demo.infra;
 
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
 public class ContactDeletedEvent extends Event {
-  @Override
-  public EventType getType() {
-    return EventType.DELETED;
+  public ContactDeletedEvent() {
+  }
+
+  public ContactDeletedEvent(UUID id, ZonedDateTime dateTime) {
+    super(id, dateTime);
   }
 
   @Override

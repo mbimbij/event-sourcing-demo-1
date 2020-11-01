@@ -2,16 +2,22 @@ package com.example.demo.infra;
 
 import lombok.Value;
 
+import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Value
 public class ContactUpdatedEvent extends Event {
 
   private Map<String, Object> updatedFields;
 
-  @Override
-  public EventType getType() {
-    return EventType.UPDATED;
+  public ContactUpdatedEvent(Map<String, Object> updatedFields) {
+    this.updatedFields = updatedFields;
+  }
+
+  public ContactUpdatedEvent(UUID id, ZonedDateTime dateTime, Map<String, Object> updatedFields) {
+    super(id, dateTime);
+    this.updatedFields = updatedFields;
   }
 
   @Override
